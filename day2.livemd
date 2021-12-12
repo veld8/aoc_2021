@@ -1,0 +1,62 @@
+# Day 2
+
+## Setup
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.4.1"}
+])
+```
+
+```elixir
+input = Kino.Input.textarea("Giv your input here:")
+```
+
+## Puzzle 1
+
+```elixir
+input
+|> Kino.Input.read()
+|> String.split([" ", "\n"], trim: true)
+|> Enum.chunk_every(2)
+|> Enum.map(fn [dir, num] -> {dir, String.to_integer(num)} end)
+|> Enum.reduce({0, 0}, fn cmd, {hor, ver} ->
+  case cmd do
+    {"forward", num} ->
+      {hor + num, ver}
+
+    {"down", num} ->
+      {hor, ver + num}
+
+    {"up", num} ->
+      {hor, ver - num}
+  end
+end)
+|> Tuple.product()
+```
+
+## Puzzle 2
+
+```elixir
+commands =
+  input
+  |> Kino.Input.read()
+  |> String.split([" ", "\n"], trim: true)
+  |> Enum.chunk_every(2)
+  |> Enum.map(fn [dir, num] -> {dir, String.to_integer(num)} end)
+  |> Enum.reduce({0, 0, 0}, fn cmd, {hor, dep, aim} ->
+    case cmd do
+      {"forward", num} ->
+        {hor + num, dep + num * aim, aim}
+
+      {"down", num} ->
+        {hor, dep, aim + num}
+
+      {"up", num} ->
+        {hor, dep, aim - num}
+    end
+  end)
+
+{hor, dep, aim} = commands
+hor * dep
+```
