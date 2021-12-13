@@ -1,0 +1,95 @@
+# Day 3
+
+## Setup
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.4.1"}
+])
+
+import Bitwise
+```
+
+```elixir
+input = Kino.Input.textarea("Please give your input here:")
+```
+
+```elixir
+numbers =
+  input
+  |> Kino.Input.read()
+  |> String.split("\n", trim: true)
+  |> Enum.map(&String.to_charlist/1)
+```
+
+## Puzzle 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+gamma =
+  numbers
+  |> Enum.zip_reduce("", fn elems, acc ->
+    %{?0 => zeros, ?1 => ones} = Enum.frequencies(elems)
+
+    if zeros > ones do
+      "0" <> acc
+    else
+      "1" <> acc
+    end
+  end)
+  |> String.reverse()
+  |> String.to_integer(2)
+
+[number | _] = numbers
+mask = 2 ** length(number) - 1
+epsilon = bnot(gamma) &&& mask
+
+gamma * epsilon
+```
+
+## Puzzle 2
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+numbers = Enum.map(numbers, &List.to_tuple/1)
+
+oxygen =
+  Reducer.parse(
+    numbers,
+    fn zero_count, one_count ->
+      if one_count >= zero_count, do: ?1, else: ?0
+    end
+  )
+
+carbon_dioxide =
+  Reducer.parse(
+    numbers,
+    fn zero_count, one_count ->
+      if one_count >= zero_count, do: ?0, else: ?1
+    end
+  )
+
+oxygen * carbon_dioxide
+```
+
+```elixir
+defmodule Reducer do
+  def parse(numbers, fun), do: parse(numbers, 0, fun)
+
+  defp parse([number], _pos, _fun) do
+    number
+    |> Tuple.to_list()
+    |> List.to_integer(2)
+  end
+
+  defp parse(numbers, pos, fun) do
+    zero_count = Enum.count(numbers, &(elem(&1, pos) == ?0))
+    one_count = length(numbers) - zero_count
+    to_keep = fun.(zero_count, one_count)
+    numbers = Enum.filter(numbers, &(elem(&1, pos) == to_keep))
+    parse(numbers, pos + 1, fun)
+  end
+end
+```
